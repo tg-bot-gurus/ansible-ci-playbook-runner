@@ -1,11 +1,12 @@
 ---
-global_cli_options: []
-global_galaxy_cli_options: []
+global_cli_options:
+  - name: -b
+global_galaxy_cli_options:
+  - name: --ignore-certs
 playbooks:
   - name: Deploy Database
     path: deploy_db.yml
     cli_options: # the ones ansible-playbook command accepts
-      - name: -b
       - name: -f
         value: 5
       - name: --skip-tags
@@ -33,5 +34,4 @@ playbooks:
     galaxy_cli_options: # same approach as with ansible_playbook cli options
       - name: -r
         value: requirements.yml
-      - name: --ignore-certs
 
