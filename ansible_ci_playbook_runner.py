@@ -3,8 +3,8 @@ import subprocess
 import yaml
 
 ##### Global Vars
-SCRIPT_NAME = os.path.splitext(os.path.basename(__file__))[0]
-CONFIG_FILE = "{}.yml".format(SCRIPT_NAME)
+
+CONFIG_FILE = "playbooks_config.yml"
 
 #####
 
