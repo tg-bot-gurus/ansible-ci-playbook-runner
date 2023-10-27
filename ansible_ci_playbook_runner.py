@@ -40,7 +40,7 @@ class CliOption:
 
     def resolve_env_type_value(self, value: str) -> str:
         env_var = os.environ.get(value)
-        assert env_var is not None, "{value} env var doesn't exist!"
+        assert env_var is not None, f"{value} env var doesn't exist!"
         return env_var
 
     def resolve_dict_value(self, dict_value: dict) -> str:
@@ -59,7 +59,7 @@ class Command:
     playbook: str | None
     cli_args: list
 
-    def __init__(self, command_name: str, cli_options: list(CliOption), playbook=None):
+    def __init__(self, command_name: str, cli_options: list, playbook=None):
         self.command_name = command_name
         if playbook is not None:
             self.is_galaxy = False
@@ -69,7 +69,7 @@ class Command:
             self.playbook = None
         self.cli_args = self.command_args(cli_options)
 
-    def command_args(self, cli_options: list(CliOption)):
+    def command_args(self, cli_options: list):
         args_list = [self.command_name]
         for cli_option in cli_options:
             if cli_option.value is not None:
@@ -85,7 +85,7 @@ class Command:
     def run_command(self) -> None:
         try:
             print("Executing '{}'".format(self.cli_args))
-            subprocess.run(self.cli_args,capture_output=True)
+            #subprocess.run(self.cli_args,capture_output=True)
         except Exception as e:
             print("Failed to run {}: {}".format(self.cli_args,e))
 
@@ -115,9 +115,11 @@ def execute_command(command_type: str, playbook_info: dict, config: dict) -> Non
     cli_opts = list()
     for cli_opt in playbook_info[cli_opt_key]:
         cli_opts.append(CliOption(cli_opt))
-    unified_cli_opts = set(global_cli_opts).union(cli_opts)
-    command_name = 'ansible-playbook' if command_type != 'galaxy' else 'ansible-galaxy'
-    command = Command(command_name,unified_cli_opts)
+    unified_cli_opts = list(set(global_cli_opts).union(cli_opts))
+    if command_type != 'galaxy':
+        command = Command('ansible-playbook',unified_cli_opts,playbook_info['path'])
+    else:
+        command = Command('ansible-galaxy',unified_cli_opts)
     command.run_command()
 
 
