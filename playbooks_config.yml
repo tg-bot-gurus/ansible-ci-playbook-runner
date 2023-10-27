@@ -13,7 +13,6 @@ playbooks:
         value: ANSIBLE_SKIP_TAGS
         value_is_env_var: True
       - name: -e
-        type: list
         value:
           # list element is dict
           - name: db_user # first value type - key: string; value: string/int, etc.
