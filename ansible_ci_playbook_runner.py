@@ -66,7 +66,7 @@ class CliOption:
         return '{}'.format(value_config['separator'].join(result))
 
     def decode_b64(self, value: str):
-        return str(base64.b64decode(value))
+        return base64.b64decode(value).decode('utf-8')
 
     def resolve_env_type_value(self, value: str) -> str:
         env_var = os.environ.get(value)
