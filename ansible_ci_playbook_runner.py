@@ -1,6 +1,8 @@
 import os
+import sys
 import subprocess
 import yaml
+import base64
 
 from typing import Union
 from enum import Enum
@@ -8,6 +10,7 @@ from enum import Enum
 ##### Global Vars
 
 CONFIG_FILE = "playbooks_config.yml"
+EXIT_CODES = list()
 
 
 #####
@@ -34,38 +37,46 @@ class CliOption:
 
     def __init__(self, cli_config: dict[str,Union[int, str, bool]]):
         self.name = cli_config['name']
-        self.value = self.resolve_value(cli_config)
+        self.value = self.resolve_value(self.supply_missing_keys(cli_config))
+
+    def supply_missing_keys(self, value_config: dict[str,Union[int, str, bool]]):
+        if not value_config.get('value_is_env_var',False):
+            value_config['value_is_env_var'] = False
+        if not value_config.get('is_base64',False):
+            value_config['is_base64'] = False
+        if not value_config.get('value',False):
+            value_config['value'] = None
+        return value_config
 
     def resolve_value(self, value_config: dict[str,Union[int, str, bool]]) -> str:
-        if not value_config.get('value',False):
+        if value_config['value'] is None:
             return None
         unprocessed_value = value_config['value']
-        if value_config.get('value_is_env_var',False):
-            assert isinstance(unprocessed_value, str), "Values stored as env vars can be strings only"
-            return unprocessed_value if not value_config['value_is_env_var'] else self.resolve_env_type_value(unprocessed_value)
         if not isinstance(unprocessed_value, list):
-            return str(unprocessed_value)
+            out_value = unprocessed_value if not value_config['value_is_env_var'] else self.resolve_env_type_value(unprocessed_value)
+            return str(out_value) if not value_config['is_base64'] else self.decode_b64(out_value)
         result = list()
         for element in unprocessed_value:
             if isinstance(element, dict):
-                result.append(self.resolve_dict_value(element))
+                result.append(self.resolve_dict_value(self.supply_missing_keys(element)))
             else:
                 result.append(element)
         if not value_config.get('separator',False):
             raise Exception("No separator is specified")
         return '{}'.format(value_config['separator'].join(result))
 
+    def decode_b64(self, value: str):
+        return str(base64.decode(value))
+
     def resolve_env_type_value(self, value: str) -> str:
         env_var = os.environ.get(value)
         assert env_var is not None, f"{value} env var doesn't exist!"
-        return env_var
+        return str(env_var)
 
-    def resolve_dict_value(self, value: dict[str,Union[int, str, bool]]) -> str:
-        result_key = value['name']
-        if value.get('value_is_env_var',False):
-            result_value = value['value'] if not value['value_is_env_var'] else self.resolve_env_type_value(value['value'])
-        else:
-            result_value = value['value']
+    def resolve_dict_value(self, value_config: dict[str,Union[int, str, bool]]) -> str:
+        result_key = value_config['name']
+        result = value_config['value'] if not value_config['value_is_env_var'] else self.resolve_env_type_value(value_config['value'])
+        result_value = result if not value_config['is_base64'] else self.decode_b64(result)
         return '{}={}'.format(result_key,result_value)
 
 
@@ -97,10 +108,12 @@ class Command:
 
     def run_command(self) -> None:
         try:
-            subprocess.run(self.cli_args)
-            print("Executed command is '{}'".format(self.cli_args))
+            process = subprocess.run(self.cli_args)
+            EXIT_CODES.append(process.returncode)
+            print("Executed command is '{}'. Its returncode is {}".format(self.cli_args,process.returncode))
         except Exception as e:
             print("Failed to run {}: {}".format(self.cli_args,e))
+            EXIT_CODES.append(1)
 
 
 #####
@@ -156,7 +169,12 @@ def main() -> None:
     playbooks = playbooks_config['playbooks']
     for playbook in playbooks:
         process_playbook_data(playbook,playbooks_config)
-
+    if len(EXIT_CODES) == 0:
+        raise Exception("Something went wrong! No command seems to have executed. EXIT_CODES list is empty")
+    no_dup_exit_codes = list(set(EXIT_CODES))
+    if len(no_dup_exit_codes) > 1 or no_dup_exit_codes[0] != 0:
+        print("Exiting with a non-zero exit code")
+        sys.exit(1)
 
 #####
 
