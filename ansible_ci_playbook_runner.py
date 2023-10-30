@@ -53,7 +53,7 @@ class CliOption:
                 result.append(element)
         if not value_config.get('separator',False):
             raise Exception("No separator is specified")
-        return value_config['separator'].join(result)
+        return "{}".format(value_config['separator'].join(result))
 
     def resolve_env_type_value(self, value: str) -> str:
         env_var = os.environ.get(value)
