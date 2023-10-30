@@ -41,10 +41,10 @@ class CliOption:
             return None
         unprocessed_value = value_config['value']
         if value_config.get('value_is_env_var',False):
-            assert type(unprocessed_value) is str, "Values stored as env vars can be strings only"
+            assert isinstance(unprocessed_value, str), "Values stored as env vars can be strings only"
             return unprocessed_value if not value_config['value_is_env_var'] else self.resolve_env_type_value(unprocessed_value)
-        if not type(unprocessed_value) is list:
-            return unprocessed_value
+        if not isinstance(unprocessed_value, list):
+            return str(unprocessed_value)
         result = list()
         for element in unprocessed_value:
             if isinstance(element, dict):
@@ -53,7 +53,7 @@ class CliOption:
                 result.append(element)
         if not value_config.get('separator',False):
             raise Exception("No separator is specified")
-        return "{}".format(value_config['separator'].join(result))
+        return '{}'.format(value_config['separator'].join(result))
 
     def resolve_env_type_value(self, value: str) -> str:
         env_var = os.environ.get(value)
@@ -66,7 +66,7 @@ class CliOption:
             result_value = value['value'] if not value['value_is_env_var'] else self.resolve_env_type_value(value['value'])
         else:
             result_value = value['value']
-        return "{}={}".format(result_key,result_value)
+        return '{}={}'.format(result_key,result_value)
 
 
 class Command:
@@ -89,7 +89,8 @@ class Command:
                 args_list.append('-C')
         for cli_option in cli_options:
             if cli_option.value is not None:
-                args_list.append("{} {}".format(cli_option.name,cli_option.value))
+                args_list.append(cli_option.name)
+                args_list.append(cli_option.value)
             else:
                 args_list.append(cli_option.name)
         return args_list
