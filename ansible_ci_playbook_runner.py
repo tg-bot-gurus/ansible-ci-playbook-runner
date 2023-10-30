@@ -18,14 +18,12 @@ class CommandType(Enum):
     GALAXY = {
         'command': 'ansible-galaxy',
         'value_name': 'galaxy_cli_options',
-        'global_value_name': 'global_galaxy_cli_options',
-        'is_playbook': False
+        'global_value_name': 'global_galaxy_cli_options'
     }
     PLAYBOOK = {
         'command': 'ansible-playbook',
         'value_name': 'cli_options',
-        'global_value_name': 'global_cli_options',
-        'is_playbook': True
+        'global_value_name': 'global_cli_options'
     }
 
 
@@ -74,31 +72,26 @@ class CliOption:
 class Command:
 
     command_name: str
-    is_galaxy: bool
-    playbook: str | None
     cli_args: list
 
-    def __init__(self, command_name: str, cli_options: list[CliOption], playbook=None):
-        self.command_name = command_name
-        if playbook is not None:
-            self.is_galaxy = False
-            self.playbook = playbook
-        else:
-            self.is_galaxy = True
-            self.playbook = None
-        self.cli_args = self.command_args(cli_options)
+    def __init__(self, command_type: CommandType, cli_options: list[CliOption], playbook_path=None):
+        self.command_name = command_type.value['command']
+        self.command_type = command_type
+        self.cli_args = self.command_args(cli_options,playbook_path)
 
-    def command_args(self, cli_options: list[CliOption]):
+    def command_args(self, cli_options: list[CliOption], playbook_path):
         args_list = [self.command_name]
+        if self.command_type == CommandType.GALAXY:
+            args_list.append('install')
+        else:
+            args_list.append(playbook_path)
+            if os.environ.get('ANSIBLE_CHECK_MODE',default=False):
+                args_list.append('-C')
         for cli_option in cli_options:
             if cli_option.value is not None:
                 args_list.append("{} {}".format(cli_option.name,cli_option.value))
             else:
                 args_list.append(cli_option.name)
-        if not self.is_galaxy:
-            if os.environ.get('ANSIBLE_CHECK_MODE',default=False):
-                args_list.append('-C')
-            args_list.append(self.playbook)
         return args_list
 
     def run_command(self) -> None:
@@ -137,8 +130,7 @@ def execute_command(command_type: CommandType,
     for cli_opt in playbook_info[cli_opt_key]:
         cli_opts.append(CliOption(cli_opt))
     unified_cli_opts = list(set(global_cli_opts).union(cli_opts))
-    playbook_path = playbook_info['path'] if command_type.value['is_playbook'] else None
-    command = Command(command_type.value['command'],unified_cli_opts,playbook_path)
+    command = Command(command_type,unified_cli_opts,playbook_info['path'])
     command.run_command()
 
 
