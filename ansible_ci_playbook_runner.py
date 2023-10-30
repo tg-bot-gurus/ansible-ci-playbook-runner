@@ -97,8 +97,8 @@ class Command:
 
     def run_command(self) -> None:
         try:
-            print("Executing '{}'".format(self.cli_args))
             subprocess.run(self.cli_args)
+            print("Executed command is '{}'".format(self.cli_args))
         except Exception as e:
             print("Failed to run {}: {}".format(self.cli_args,e))
 
