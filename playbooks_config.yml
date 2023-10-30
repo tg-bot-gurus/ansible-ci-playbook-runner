@@ -20,7 +20,7 @@ playbooks:
           - name: db_password # second value type - key: string; value: env_var_name; type: env (to indicate that env var should be looked up)
             value: DB_PASSWORD
             value_is_env_var: True
-            is_base64: True
+            is_base64: False #True
         separator: ' '
       - name: -e
         value: '@path_to_extra_vars_json_or_yaml_file' # third value type: key: string, such args do not accept values

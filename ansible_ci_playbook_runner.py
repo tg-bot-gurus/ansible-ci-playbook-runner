@@ -3,15 +3,23 @@ import sys
 import subprocess
 import yaml
 import base64
+import argparse
 
 from typing import Union
 from enum import Enum
+
+##### Arg parsing
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--debug_mode', type=bool, required=False, default=False)
+
+#####
 
 ##### Global Vars
 
 CONFIG_FILE = "playbooks_config.yml"
 EXIT_CODES = list()
-
+DEBUG_MODE = parser.parse_args().debug_mode
 
 #####
 
@@ -110,7 +118,7 @@ class Command:
         try:
             process = subprocess.run(self.cli_args)
             EXIT_CODES.append(process.returncode)
-            print("Executed command is '{}'. Its returncode is {}".format(self.cli_args,process.returncode))
+            print_debug_output("Executed command is '{}'. Its returncode is {}".format(self.cli_args,process.returncode))
         except Exception as e:
             print("Failed to run {}: {}".format(self.cli_args,e))
             EXIT_CODES.append(1)
@@ -119,6 +127,11 @@ class Command:
 #####
 
 ##### functions
+
+def print_debug_output(message: str) -> None:
+    if DEBUG_MODE:
+        print(message)
+
 
 def load_config() -> dict:
     with open(CONFIG_FILE, 'r') as f:
@@ -173,7 +186,7 @@ def main() -> None:
         raise Exception("Something went wrong! No command seems to have executed. EXIT_CODES list is empty")
     no_dup_exit_codes = list(set(EXIT_CODES))
     if len(no_dup_exit_codes) > 1 or no_dup_exit_codes[0] != 0:
-        print("Exiting with a non-zero exit code")
+        print_debug_output("Exiting with a non-zero exit code")
         sys.exit(1)
 
 #####
