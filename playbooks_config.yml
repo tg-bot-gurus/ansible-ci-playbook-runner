@@ -1,0 +1,37 @@
+---
+global_cli_options:
+  - name: -b
+global_galaxy_cli_options:
+  - name: --ignore-certs
+playbooks:
+  - name: Deploy Database
+    path: deploy_db.yml
+    cli_options: # the ones ansible-playbook command accepts
+      - name: -f
+        value: 5
+      - name: --skip-tags
+        value: ANSIBLE_SKIP_TAGS
+        value_is_env_var: True
+      - name: -e
+        value:
+          # list element is dict
+          - name: db_user # first value type - key: string; value: string/int, etc.
+            value: admin_user
+          - name: db_password # second value type - key: string; value: env_var_name; type: env (to indicate that env var should be looked up)
+            value: DB_PASSWORD
+            value_is_env_var: True
+            is_base64: False #True
+        separator: ' '
+      - name: -e
+        value: '@path_to_extra_vars_json_or_yaml_file' # third value type: key: string, such args do not accept values
+      - name: --limit
+        value:
+          - hostA
+          - hostB
+          - hostC
+        separator: ','
+    galaxy_deps_required: True
+    galaxy_cli_options: # same approach as with ansible_playbook cli options
+      - name: -r
+        value: requirements.yml
+
