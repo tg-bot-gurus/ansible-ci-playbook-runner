@@ -12,14 +12,16 @@ from enum import Enum
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--debug_mode', type=bool, required=False, default=False)
+parser.add_argument('--config_path', type=str, required=False)
+args = parser.parse_args()
 
 #####
 
 ##### Global Vars
 
-CONFIG_FILE = "playbooks_config.yml"
+CONFIG_FILE = "playbooks_config.yml" if not args.config_path else args.config_path
 EXIT_CODES = list()
-DEBUG_MODE = parser.parse_args().debug_mode
+DEBUG_MODE = args.debug_mode
 
 #####
 
