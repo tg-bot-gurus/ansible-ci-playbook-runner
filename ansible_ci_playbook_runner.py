@@ -11,17 +11,31 @@ from enum import Enum
 ##### Arg parsing
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--debug_mode', type=bool, required=False, default=False)
-parser.add_argument('--config_path', type=str, required=False)
+parser.add_argument(
+    '--debug_mode',
+    type=bool,
+    required=False,
+    default=os.environ.get('PLAY_RUNNER_DEBUG',default=False))
+parser.add_argument(
+    '--config_path',
+    type=str,
+    required=False,
+    default=os.environ.get('PLAY_RUNNER_CONFIG',default='playbooks_config.yml'))
+parser.add_argument(
+    '--playbooks',
+    type=str,
+    required=False,
+    default=os.environ.get('PLAY_RUNNER_PLAYBOOKS',default=''))
 args = parser.parse_args()
 
 #####
 
 ##### Global Vars
 
-CONFIG_FILE = "playbooks_config.yml" if not args.config_path else args.config_path
-EXIT_CODES = list()
+CONFIG_FILE = args.config_path
 DEBUG_MODE = args.debug_mode
+PLAYBOOKS_LIMIT = args.playbooks.split(';') if len(args.playbooks) > 0 else list()
+EXIT_CODES = list()
 
 #####
 
@@ -183,6 +197,8 @@ def main() -> None:
         return
     playbooks = playbooks_config['playbooks']
     for playbook in playbooks:
+        if len(PLAYBOOKS_LIMIT) > 0 and playbook.name not in PLAYBOOKS_LIMIT:
+            continue
         process_playbook_data(playbook,playbooks_config)
     if len(EXIT_CODES) == 0:
         raise Exception("Something went wrong! No command seems to have executed. EXIT_CODES list is empty")
