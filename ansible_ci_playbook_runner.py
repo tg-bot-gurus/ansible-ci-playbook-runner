@@ -81,7 +81,9 @@ class CliOption:
             out_value = (unprocessed_value
                          if not value_config['value_is_env_var']
                          else CliOption.resolve_env_type_value(unprocessed_value))
-            return str(out_value) if not value_config['is_base64'] else CliOption.decode_b64(out_value)
+            return (str(out_value)
+                    if not value_config['is_base64']
+                    else CliOption.decode_b64(out_value))
         result = list()
         for element in unprocessed_value:
             if isinstance(element, dict):
