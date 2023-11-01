@@ -77,7 +77,9 @@ class CliOption:
             return None
         unprocessed_value = value_config['value']
         if not isinstance(unprocessed_value, list):
-            out_value = unprocessed_value if not value_config['value_is_env_var'] else self.resolve_env_type_value(unprocessed_value)
+            out_value = (unprocessed_value
+                         if not value_config['value_is_env_var']
+                         else self.resolve_env_type_value(unprocessed_value))
             return str(out_value) if not value_config['is_base64'] else self.decode_b64(out_value)
         result = list()
         for element in unprocessed_value:
@@ -99,7 +101,9 @@ class CliOption:
 
     def resolve_dict_value(self, value_config: dict[str, Union[int, str, bool]]) -> str:
         result_key = value_config['name']
-        result = value_config['value'] if not value_config['value_is_env_var'] else self.resolve_env_type_value(value_config['value'])
+        result = (value_config['value']
+                  if not value_config['value_is_env_var']
+                  else self.resolve_env_type_value(value_config['value']))
         result_value = result if not value_config['is_base64'] else self.decode_b64(result)
         return '{}={}'.format(result_key, result_value)
 
@@ -134,7 +138,8 @@ class Command:
         try:
             process = subprocess.run(self.cli_args)
             EXIT_CODES.append(process.returncode)
-            print_debug_output("Executed command is '{}'. Its returncode is {}".format(self.cli_args, process.returncode))
+            print_debug_output("Executed command is '{}'. Its returncode is {}".format(
+                self.cli_args, process.returncode))
         except subprocess.CalledProcessError as excep:
             print("Failed to run {}: {}".format(self.cli_args, excep))
             EXIT_CODES.append(1)
@@ -155,7 +160,8 @@ def load_config() -> dict:
     return config
 
 
-def parse_global_cli_options(command_type: CommandType, config: dict[str, Union[int, str, bool, list, dict]]) -> list:
+def parse_global_cli_options(command_type: CommandType,
+                             config: dict[str, Union[int, str, bool, list, dict]]) -> list:
     global_options = list()
     glob_opt_key = command_type.value['global_value_name']
     if config.get(glob_opt_key, False) and len(config[glob_opt_key]) > 0:
@@ -168,7 +174,7 @@ def execute_command(command_type: CommandType,
                     playbook_info: dict[str, Union[int, str, bool, list, dict]],
                     config: dict[str, Union[int, str, bool, list, dict]]) -> None:
     cli_opt_key = command_type.value['value_name']
-    global_cli_opts = parse_global_cli_options(command_type,config)
+    global_cli_opts = parse_global_cli_options(command_type, config)
     cli_opts = list()
     for cli_opt in playbook_info[cli_opt_key]:
         cli_opts.append(CliOption(cli_opt))
