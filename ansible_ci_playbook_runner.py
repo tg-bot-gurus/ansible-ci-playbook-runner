@@ -136,7 +136,7 @@ class Command:
 
     def run_command(self) -> None:
         try:
-            process = subprocess.run(self.cli_args)
+            process = subprocess.run(self.cli_args, check=False)
             EXIT_CODES.append(process.returncode)
             print_debug_output("Executed command is '{}'. Its returncode is {}".format(
                 self.cli_args, process.returncode))
@@ -155,8 +155,8 @@ def print_debug_output(message: str) -> None:
 
 
 def load_config() -> dict:
-    with open(CONFIG_FILE, 'r') as f:
-        config = dict(yaml.safe_load(f))
+    with open(CONFIG_FILE, 'r') as conf_file:
+        config = dict(yaml.safe_load(conf_file))
     return config
 
 
@@ -207,7 +207,7 @@ def main() -> None:
             continue
         process_playbook_data(playbook, playbooks_config)
     if len(EXIT_CODES) == 0:
-        raise Exception("Something went wrong! No command seems to have executed. EXIT_CODES list is empty")
+        raise Exception("Something went wrong! EXIT_CODES list is empty")
     no_dup_exit_codes = list(set(EXIT_CODES))
     if len(no_dup_exit_codes) > 1 or no_dup_exit_codes[0] != 0:
         print_debug_output("Exiting with a non-zero exit code")

@@ -17,5 +17,5 @@ jobs:
           python-version: '3.11'
       - name: Install pylint
         run: DEBIAN_FRONTEND=noninteractive sudo apt install -y pylint
-      - name:
+      - name: Lint main script
         run: pylint ansible_ci_playbook_runner.py
