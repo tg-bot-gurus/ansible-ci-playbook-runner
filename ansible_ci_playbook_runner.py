@@ -61,9 +61,10 @@ class CliOption:
 
     def __init__(self, cli_config: dict[str, Union[int, str, bool]]):
         self.name = cli_config['name']
-        self.value = self.resolve_value(self.supply_missing_keys(cli_config))
+        self.value = self.resolve_value(CliOption.supply_missing_keys(cli_config))
 
-    def supply_missing_keys(self, value_config: dict[str, Union[int, str, bool]]):
+    @staticmethod
+    def supply_missing_keys(value_config: dict[str, Union[int, str, bool]]):
         if not value_config.get('value_is_env_var', False):
             value_config['value_is_env_var'] = False
         if not value_config.get('is_base64', False):
@@ -79,8 +80,8 @@ class CliOption:
         if not isinstance(unprocessed_value, list):
             out_value = (unprocessed_value
                          if not value_config['value_is_env_var']
-                         else self.resolve_env_type_value(unprocessed_value))
-            return str(out_value) if not value_config['is_base64'] else self.decode_b64(out_value)
+                         else CliOption.resolve_env_type_value(unprocessed_value))
+            return str(out_value) if not value_config['is_base64'] else CliOption.decode_b64(out_value)
         result = list()
         for element in unprocessed_value:
             if isinstance(element, dict):
@@ -91,10 +92,12 @@ class CliOption:
             raise Exception("No separator is specified")
         return '{}'.format(value_config['separator'].join(result))
 
-    def decode_b64(self, value: str):
+    @staticmethod
+    def decode_b64(value: str):
         return base64.b64decode(value).decode('utf-8')
 
-    def resolve_env_type_value(self, value: str) -> str:
+    @staticmethod
+    def resolve_env_type_value(value: str) -> str:
         env_var = os.environ.get(value)
         assert env_var is not None, f"{value} env var doesn't exist!"
         return str(env_var)
@@ -103,8 +106,8 @@ class CliOption:
         result_key = value_config['name']
         result = (value_config['value']
                   if not value_config['value_is_env_var']
-                  else self.resolve_env_type_value(value_config['value']))
-        result_value = result if not value_config['is_base64'] else self.decode_b64(result)
+                  else CliOption.resolve_env_type_value(value_config['value']))
+        result_value = result if not value_config['is_base64'] else CliOption.decode_b64(result)
         return '{}={}'.format(result_key, result_value)
 
 
