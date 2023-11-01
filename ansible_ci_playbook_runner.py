@@ -87,7 +87,7 @@ class CliOption:
         result = list()
         for element in unprocessed_value:
             if isinstance(element, dict):
-                result.append(self.resolve_dict_value(self.supply_missing_keys(element)))
+                result.append(CliOption.resolve_dict_value(self.supply_missing_keys(element)))
             else:
                 result.append(element)
         if not value_config.get('separator', False):
@@ -104,7 +104,8 @@ class CliOption:
         assert env_var is not None, f"{value} env var doesn't exist!"
         return str(env_var)
 
-    def resolve_dict_value(self, value_config: dict[str, Union[int, str, bool]]) -> str:
+    @staticmethod
+    def resolve_dict_value(value_config: dict[str, Union[int, str, bool]]) -> str:
         result_key = value_config['name']
         result = (value_config['value']
                   if not value_config['value_is_env_var']
