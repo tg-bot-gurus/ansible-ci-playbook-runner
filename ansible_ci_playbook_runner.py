@@ -96,7 +96,7 @@ class CliOption:
 
     @staticmethod
     def decode_b64(value: str):
-        return base64.b64decode(value).decode('utf-8')
+        return base64.b64decode(value).decode('utf-8').strip('\n')
 
     @staticmethod
     def resolve_env_type_value(value: str) -> str:
