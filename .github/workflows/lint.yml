@@ -1,0 +1,21 @@
+name: Push
+on:
+  push:
+    branches-ignore:
+      - main
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install pylint
+        run: DEBIAN_FRONTEND=noninteractive sudo apt install -y pylint
+      - name: Lint main script
+        run: pylint ansible_ci_playbook_runner.py
