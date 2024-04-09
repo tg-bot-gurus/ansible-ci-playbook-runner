@@ -21,9 +21,9 @@ def parse_bool_value(val: str) -> bool:
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument(
     '--debug_mode',
-    type=bool,
+    type=str,
     required=False,
-    default=parse_bool_value(os.environ.get('PLAY_RUNNER_DEBUG', default='False')))
+    default=os.environ.get('PLAY_RUNNER_DEBUG', default='False'))
 PARSER.add_argument(
     '--config_path',
     type=str,
@@ -41,7 +41,7 @@ ARGS = PARSER.parse_args()
 ##### Global Vars
 
 CONFIG_FILE = ARGS.config_path
-DEBUG_MODE = ARGS.debug_mode
+DEBUG_MODE = parse_bool_value(ARGS.debug_mode)
 PLAYBOOKS_LIMIT = ARGS.playbooks.split(';') if len(ARGS.playbooks) > 0 else list()
 EXIT_CODES = list()
 
