@@ -18,3 +18,11 @@ The main configuration file the script relies on is `playbooks_config.yml`. This
      * `galaxy_cli_options` (*list[dict]*): the same as `cli_options` described above.
 2. `global_cli_options` (*list[dict]*): a list of cli_options to apply to all `ansible-playbook` runs.
 3. `global_galaxy_cli_options` (*list[dict]*): a list of cli_options to apply to all `ansible-galaxy` runs.
+
+# Script arguments and environment variables
+Script behaviour can be adjusted by specifying the following **nonrequired** arguments:
+1. `--debug_mode`: prints more detailed output, e.g.: a launched command along with its arguments. If `PLAY_RUNNER_DEBUG` environment variable is specified, its value is used.
+2. `--config_path`: specifies the path to a config file, defaults to `playbooks_config.yml`. If `PLAY_RUNNER_CONFIG` environment variable is specified, its value is used.
+3. `--playbooks`: limits the list of the playbooks specified in the config file to process. Use a comma-separated string. If `PLAY_RUNNER_PLAYBOOKS` environment variable is specified, its value is used.
+
+Additionally, if `ANSIBLE_CHECK_MODE` environment variable is specified, the '-C' (--check) argument is added to the `ansible-playbook`command.
