@@ -10,6 +10,14 @@ import yaml
 
 ##### Arg parsing
 
+def parse_bool_value(val: str) -> bool:
+    lower_val = val.lower()
+    if lower_val == 'true' or lower_val == 'yes' or lower_val == '1':
+        return True
+    else:
+        return False
+
+
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument(
     '--debug_mode',
@@ -200,14 +208,6 @@ def process_playbook_data(playbook_info: dict[str, Union[int, str, bool, list, d
             len(playbook_info['cli_options']) == 0):
         raise ValueError("Playbook-level cli_options must be defined")
     execute_command(CommandType.PLAYBOOK, playbook_info, config)
-
-
-def parse_bool_value(val: str) -> bool:
-    lower_val = val.lower()
-    if lower_val == 'true' or lower_val == 'yes' or lower_val == '1':
-        return True
-    else:
-        return False
 
 
 def main() -> None:
