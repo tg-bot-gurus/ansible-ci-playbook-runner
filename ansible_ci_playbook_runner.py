@@ -138,7 +138,7 @@ class Command:
             args_list.append('install')
         else:
             args_list.append(playbook_path)
-            if os.environ.get('ANSIBLE_CHECK_MODE', default=False):
+            if parse_bool_value(os.environ.get('ANSIBLE_CHECK_MODE', default=False)):
                 args_list.append('-C')
         for cli_option in cli_options:
             if cli_option.value is not None:
